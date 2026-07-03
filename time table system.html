@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Olive Routine Planner</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* 올리브 그린 테마 색상 정의 */
+        :root {
+            --color-olive-50: #f4f6f0;
+            --color-olive-100: #e6ebd9;
+            --color-olive-600: #556b2f; /* Dark Olive Green */
+            --color-olive-700: #425424;
+        }
+    </style>
+</head>
+<body class="bg-[#f4f6f0] text-slate-800 font-sans antialiased">
+
+    <div class="max-w-7xl mx-auto p-4 md:p-6">
+        <header class="mb-6 bg-white p-4 md:p-6 rounded-2xl shadow-xs border border-[#e6ebd9] flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-[#556b2f] flex items-center gap-2">
+                    <i data-lucide="calendar-range" class="w-6 h-6"></i> Olive Routine & Todo
+                </h1>
+            </div>
+            <div class="w-full md:w-80 relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input type="text" id="search-input" oninput="searchTodos()" placeholder="일정 검색..." class="w-full pl-9 pr-4 py-2 bg-slate-50 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-[#556b2f]">
+            </div>
+        </header>
+
+        <div id="search-results-box" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-[#e6ebd9] mb-6">
+            <h3 class="font-bold text-slate-700 text-sm mb-3 flex items-center gap-1">
+                <i data-lucide="list-search" class="text-[#556b2f] w-4 h-4"></i> 검색 결과
+            </h3>
+            <div id="search-results-list" class="space-y-2 max-h-40 overflow-y-auto"></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <div class="lg:col-span-5 space-y-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#e6ebd9]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 id="calendar-month" class="text-base font-bold text-slate-700">2026년 7월</h2>
+                        <div class="flex gap-1">
+                            <button onclick="prevMonth()" class="p-1.5 hover:bg-slate-100 rounded-lg"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                            <button onclick="nextMonth()" class="p-1.5 hover:bg-slate-100 rounded-lg"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-slate-400 mb-2">
+                        <div class="text-red-500">일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div class="text-blue-500">토</div>
+                    </div>
+                    <div id="calendar-days" class="grid grid-cols-7 gap-2 text-sm font-medium"></div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#e6ebd9]">
+                    <h3 class="font-bold text-sm text-slate-700 flex items-center gap-2 mb-3">
+                        <i data-lucide="plus-circle" class="w-4 h-4 text-[#556b2f]"></i> 요일별 반복 루틴 등록
+                    </h3>
+                    <div class="space-y-3 bg-slate-50 p-3 rounded-xl text-xs">
+                        <input type="text" id="new-routine-name" placeholder="루틴 명 (ex. 영양제 먹기)" class="w-full px-3 py-2 bg-white rounded-lg border border-slate-200 focus:outline-none focus:border-[#556b2f]">
+                        
+                        <div>
+                            <span class="block font-semibold text-slate-500 mb-1">반복 요일 선택</span>
+                            <div class="flex gap-1 justify-between bg-white p-2 rounded-lg border border-slate-200">
+                                <label class="cursor-pointer"><input type="checkbox" value="0" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50 text-red-500 font-bold">일</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" value="1" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50">월</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" value="2" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50">화</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" value="3" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50">수</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" value="4" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50">목</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" value="5" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50">금</span></label>
+                                <label class="cursor-pointer"><input type="checkbox" value="6" class="routine-day-check hidden"> <span class="day-btn p-1 rounded block text-center w-7 bg-slate-50 text-blue-500 font-bold">토</span></label>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <span class="block font-semibold text-slate-500 mb-1">시간대 분류</span>
+                                <select id="new-routine-period" class="w-full px-2 py-1.5 bg-white rounded-lg border border-slate-200 focus:outline-none">
+                                    <option value="오전">오전</option>
+                                    <option value="오후">오후</option>
+                                    <option value="저녁/밤">저녁/밤</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span class="block font-semibold text-slate-500 mb-1">한눈에 볼 한마디 (7자 이내)</span>
+                                <input type="text" id="new-routine-memo" maxlength="7" placeholder="ex. 07:30 또는 공복에" class="w-full px-2 py-1.5 bg-white rounded-lg border border-slate-200 focus:outline-none focus:border-[#556b2f]">
+                            </div>
+                        </div>
+                        <button onclick="addMasterRoutine()" class="w-full bg-[#556b2f] text-white py-2 rounded-lg font-semibold hover:bg-[#425424] transition">반복 루틴 저장</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-6">
+                <div id="no-date-selected-view" class="bg-white p-12 rounded-2xl text-center border border-[#e6ebd9] shadow-xs flex flex-col items-center justify-center">
+                    <i data-lucide="pointer" class="w-12 h-12 text-[#556b2f] opacity-60 mb-3 animate-bounce"></i>
+                    <h3 class="text-base font-bold text-slate-700">달력에서 날짜를 선택해주세요</h3>
+                    <p class="text-xs text-slate-400 mt-1">올리브 플래너가 하루 일정을 깔끔하게 열어 드립니다.</p>
+                </div>
+
+                <div id="detail-contents-view" class="hidden space-y-6">
+                    <div class="bg-[#556b2f] text-white p-4 rounded-xl flex justify-between items-center shadow-xs">
+                        <div>
+                            <span class="text-[10px] bg-[#425424] px-2 py-0.5 rounded-full font-bold">OLIVE PLANNER</span>
+                            <h3 id="target-date-display" class="text-lg font-bold">2026년 7월 3일</h3>
+                        </div>
+                        <span id="day-of-week-tag" class="text-xs bg-white text-[#556b2f] font-bold px-3 py-1 rounded-lg"></span>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#e6ebd9]">
+                        <h4 class="font-bold text-sm text-slate-700 flex items-center gap-2 mb-3">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i> 오늘의 요일 반복 루틴
+                        </h4>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-[11px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded mb-2 inline-block">☀️ 오전</div>
+                                <div id="routine-section-오전" class="space-y-2"></div>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded mb-2 inline-block">🌤️ 오후</div>
+                                <div id="routine-section-오후" class="space-y-2"></div>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded mb-2 inline-block">🌙 저녁 & 밤</div>
+                                <div id="routine-section-저녁" class="space-y-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-[#e6ebd9]">
+                        <h4 class="font-bold text-sm text-slate-700 flex items-center gap-2 mb-3">
+                            <i data-lucide="check-square" class="w-4 h-4 text-[#556b2f]"></i> 특별 일정 (To-Do)
+                        </h4>
+                        
+                        <div class="bg-slate-50 p-3 rounded-xl space-y-2 mb-3 text-xs">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 font-bold mb-0.5">시작 날짜</label>
+                                    <input type="date" id="todo-start" class="w-full p-2 bg-white rounded border border-slate-200">
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 font-bold mb-0.5">종료 날짜</label>
+                                    <input type="date" id="todo-end" class="w-full p-2 bg-white rounded border border-slate-200">
+                                </div>
+                            </div>
+                            
+                            <div class="p-2 bg-white rounded border border-slate-200 space-y-2">
+                                <span class="block text-[10px] text-slate-500 font-bold">시간 직접 입력 (숫자 타이핑)</span>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <div class="flex items-center gap-1">
+                                        <input type="text" id="todo-start-hour" placeholder="14" class="w-10 p-1 border border-slate-200 rounded text-center"> 시
+                                        <input type="text" id="todo-start-min" placeholder="00" class="w-10 p-1 border border-slate-200 rounded text-center"> 분 부터
+                                    </div>
+                                    <label class="flex items-center gap-1 ml-auto text-[11px] text-slate-600 cursor-pointer">
+                                        <input type="checkbox" id="use-end-time" onchange="toggleEndTimeInput()" class="rounded border-slate-300"> 종료시간 설정하기
+                                    </label>
+                                </div>
+                                <div id="end-time-input-container" class="hidden flex items-center gap-1 pt-1 border-t border-slate-100">
+                                    <input type="text" id="todo-end-hour" placeholder="16" class="w-10 p-1 border border-slate-200 rounded text-center"> 시
+                                    <input type="text" id="todo-end-min" placeholder="30" class="w-10 p-1 border border-slate-200 rounded text-center"> 분 까지
+                                </div>
+                            </div>
+
+                            <input type="text" id="todo-text" placeholder="일정 명을 입력하세요" class="w-full p-2 bg-white rounded border border-slate-200 text-sm focus:outline-none">
+                            <button onclick="addTodo()" class="w-full bg-[#556b2f] text-white py-2 rounded font-semibold hover:bg-[#425424]">일정 등록</button>
+                        </div>
+
+                        <div id="todo-list" class="space-y-2"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let selectedDateStr = null;
+
+        // 마스터 반복 루틴 데이터 (기본 탑재 데이터에도 시간 미지정 대신 자유 한마디 메모 적용!)
+        let masterRoutines = [
+            { id: 1, name: "스트레칭 하기", period: "오전", memo: "07:30", days: [1,2,3,4,5] },
+            { id: 2, name: "영양제 먹기", period: "오전", memo: "식후에바로", days: [0,1,2,3,4,5,6] },
+            { id: 3, name: "독서 타임", period: "저녁/밤", memo: "자기전에", days: [0,6] }
+        ];
+
+        // 날짜별 종합 데이터 스토리지 (일정별 고유 ID를 부여하여 개별 메모장 연결)
+        let dateData = {};
+
+        function initApp() {
+            lucide.createIcons();
+            renderCalendar();
+            setupDayCheckStyle();
+        }
+
+        function setupDayCheckStyle() {
+            document.querySelectorAll('.routine-day-check').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const span = e.target.nextElementSibling;
+                    if(e.target.checked) span.classList.add('bg-[#556b2f]', 'text-white');
+                    else span.classList.remove('bg-[#556b2f]', 'text-white');
+                });
+            });
+        }
+
+        function toggleEndTimeInput() {
+            const checked = document.getElementById('use-end-time').checked;
+            document.getElementById('end-time-input-container').classList.toggle('hidden', !checked);
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            document.getElementById('calendar-month').innerText = `${year}년 ${month + 1}월`;
+            
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            let daysHtml = '';
+            
+            for (let i = 0; i < firstDayIndex; i++) daysHtml += `<div class="p-2 text-transparent">0</div>`;
+            
+            const todayStr = formatDate(new Date());
+            for (let day = 1; day <= lastDay; day++) {
+                const thisDate = new Date(year, month, day);
+                const dateStr = formatDate(thisDate);
+                const isSelected = dateStr === selectedDateStr;
+                const isToday = dateStr === todayStr;
+                
+                let btnClass = "p-3 rounded-xl transition cursor-pointer relative text-center min-h-[48px] hover:bg-[#e6ebd9] ";
+                if (isSelected) btnClass += "bg-[#556b2f] text-white font-bold shadow-xs";
+                else if (isToday) btnClass += "bg-amber-100 text-amber-800 font-bold";
+                else btnClass += "text-slate-700 bg-white border border-slate-100";
+                
+                let hasTodo = dateData[dateStr] && dateData[dateStr].todos && dateData[dateStr].todos.length > 0;
+                let dotHtml = hasTodo && !isSelected ? `<span class="absolute bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#556b2f] rounded-full"></span>` : '';
+                
+                daysHtml += `<button onclick="selectDate('${dateStr}')" class="${btnClass}">${day}${dotHtml}</button>`;
+            }
+            document.getElementById('calendar-days').innerHTML = daysHtml;
+        }
+
+        function selectDate(dateStr) {
+            selectedDateStr = dateStr;
+            document.getElementById('no-date-selected-view').classList.add('hidden');
+            document.getElementById('detail-contents-view').classList.remove('hidden');
+
+            const targetDate = new Date(dateStr);
+            const daysEng = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
+            const dayOfWeekNum = targetDate.getDay();
+            
+            document.getElementById('target-date-display').innerText = `${targetDate.getFullYear()}년 ${targetDate.getMonth()+1}월 ${targetDate.getDate()}일`;
+            document.getElementById('day-of-week-tag').innerText = daysEng[dayOfWeekNum];
+            
+            document.getElementById('todo-start').value = dateStr;
+            document.getElementById('todo-end').value = dateStr;
+
+            if (!dateData[dateStr]) {
+                dateData[dateStr] = { routineOrder: [], routineChecked: {}, todos: [] };
+            }
+
+            const matchingMasterIds = masterRoutines.filter(r => r.days.includes(dayOfWeekNum)).map(r => r.id);
+            matchingMasterIds.forEach(id => {
+                if(!dateData[dateStr].routineOrder.includes(id)) dateData[dateStr].routineOrder.push(id);
+            });
+            dateData[dateStr].routineOrder = dateData[dateStr].routineOrder.filter(id => matchingMasterIds.includes(id));
+
+            renderCalendar();
+            renderDetails();
+        }
+
+        function renderDetails() {
+            if(!selectedDateStr) return;
+            const data = dateData[selectedDateStr];
+
+            // 루틴 시간대 정렬 출력
+            const periods = ["오전", "오후", "저녁/밤"];
+            periods.forEach(p => {
+                const containerId = p === '저녁/밤' ? 'routine-section-저녁' : `routine-section-${p}`;
+                const container = document.getElementById(containerId);
+                
+                const filteredIds = data.routineOrder.filter(id => {
+                    const master = masterRoutines.find(m => m.id === id);
+                    return master && master.period === p;
+                });
+
+                let html = '';
+                filteredIds.forEach((id, index) => {
+                    const master = masterRoutines.find(m => m.id === id);
+                    const isChecked = data.routineChecked[id] || false;
+                    
+                    // 메모 글귀가 비어있지 않으면 뱃지 형태로 표기
+                    const labelBadge = master.memo ? `<span class="text-[10px] bg-white px-1.5 py-0.5 rounded border border-slate-200 text-[#556b2f] font-semibold">${master.memo}</span>` : '';
+                    
+                    html += `
+                        <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 bg-slate-50/50">
+                            <label class="flex items-center gap-2.5 flex-1 cursor-pointer">
+                                <input type="checkbox" ${isChecked ? 'checked' : ''} onchange="toggleRoutineCheck(${id})" class="w-4.5 h-4.5 rounded text-[#556b2f] border-slate-300 focus:ring-[#556b2f]">
+                                ${labelBadge}
+                                <span class="text-sm ${isChecked ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">${master.name}</span>
+                            </label>
+                            <div class="flex items-center gap-0.5 text-xs text-slate-400">
+                                <button onclick="moveRoutine('${p}', ${index}, -1)" class="p-1 hover:bg-white rounded hover:text-slate-700">▲</button>
+                                <button onclick="moveRoutine('${p}', ${index}, 1)" class="p-1 hover:bg-white rounded hover:text-slate-700">▼</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html || `<p class="text-xs text-slate-400 italic py-1 pl-2">설정된 루틴이 없습니다.</p>`;
+            });
+
+            // 할 일 및 스마트 메모장 렌더링
+            let todoHtml = '';
+            data.todos.forEach((todo) => {
+                const timeString = todo.timeInfo ? `<span class="text-[10px] text-white bg-[#556b2f] px-1.5 py-0.5 rounded font-mono">${todo.timeInfo}</span>` : '';
+                todoHtml += `
+                    <div class="border border-slate-100 rounded-xl bg-white shadow-2xs overflow-hidden">
+                        <div class="flex items-center justify-between p-2.5 bg-white">
+                            <label class="flex items-center gap-2 cursor-pointer flex-1">
+                                <input type="checkbox" ${todo.completed ? 'checked' : ''} onchange="toggleTodoCheck('${todo.id}')" class="w-4.5 h-4.5 text-[#556b2f] rounded focus:ring-[#556b2f]">
+                                ${timeString}
+                                <span class="text-sm ${todo.completed ? 'line-through text-slate-400' : 'text-slate-700 font-medium'}">${todo.text}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button onclick="toggleNotePad('${todo.id}')" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="notebook-text" class="w-4 h-4"></i></button>
+                                <button onclick="deleteTodo('${todo.id}')" class="text-slate-300 hover:text-red-500 p-1"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <div id="notepad-${todo.id}" class="hidden p-3 bg-[#f4f6f0]/50 border-t border-dashed border-slate-200">
+                            <span class="block text-[10px] text-slate-500 font-bold mb-1">📝 일정 상세 노트 / 메모장</span>
+                            <textarea oninput="saveTodoNote('${todo.id}', this.value)" placeholder="일정에 필요한 준비물, 장소 등을 적어두세요..." class="w-full h-20 p-2 text-xs bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-[#556b2f] resize-none">${todo.note || ''}</textarea>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('todo-list').innerHTML = todoHtml || '<p class="text-xs text-slate-400 text-center py-4">등록된 일정이 없습니다.</p>';
+            lucide.createIcons();
+        }
+
+        function addMasterRoutine() {
+            const name = document.getElementById('new-routine-name').value.trim();
+            const period = document.getElementById('new-routine-period').value;
+            const memo = document.getElementById('new-routine-memo').value.trim();
+
+            const days = [];
+            document.querySelectorAll('.routine-day-check').forEach(el => {
+                if(el.checked) days.push(parseInt(el.value));
+            });
+
+            if(!name) { alert("루틴명을 적어주세요."); return; }
+            if(days.length === 0) { alert("반복 요일을 지정해주세요."); return; }
+
+            masterRoutines.push({ id: Date.now(), name, period, memo, days });
+
+            document.getElementById('new-routine-name').value = '';
+            document.getElementById('new-routine-memo').value = '';
+            document.querySelectorAll('.routine-day-check').forEach(el => { el.checked = false; el.nextElementSibling.classList.remove('bg-[#556b2f]', 'text-white'); });
+
+            if(selectedDateStr) selectDate(selectedDateStr);
+            else renderCalendar();
+        }
+
+        function moveRoutine(period, index, direction) {
+            const orderArray = dateData[selectedDateStr].routineOrder;
+            const filteredIds = orderArray.filter(id => {
+                const m = masterRoutines.find(r => r.id === id);
+                return m && m.period === period;
+            });
+
+            const targetIndex = index + direction;
+            if(targetIndex < 0 || targetIndex >= filteredIds.length) return;
+
+            const id1 = filteredIds[index];
+            const id2 = filteredIds[targetIndex];
+
+            const gIdx1 = orderArray.indexOf(id1);
+            const gIdx2 = orderArray.indexOf(id2);
+
+            orderArray[gIdx1] = id2;
+            orderArray[gIdx2] = id1;
+
+            renderDetails();
+        }
+
+        // To-Do 등록 엔진 (자유 숫자 타이핑 및 선택형 종료 시간 조립)
+        function addTodo() {
+            const startStr = document.getElementById('todo-start').value;
+            const endStr = document.getElementById('todo-end').value;
+            const text = document.getElementById('todo-text').value.trim();
+
+            // 시작시간 파싱
+            const sH = document.getElementById('todo-start-hour').value.trim();
+            const sM = document.getElementById('todo-start-min').value.trim();
+            let timeInfo = "";
+
+            if (sH) {
+                const minFormatted = sM ? sM : "00";
+                timeInfo = `${sH}:${minFormatted}`;
+                
+                // 종료 시간 매핑 여부 체크
+                if(document.getElementById('use-end-time').checked) {
+                    const eH = document.getElementById('todo-end-hour').value.trim();
+                    const eM = document.getElementById('todo-end-min').value.trim();
+                    if(eH) {
+                        const eMinFormatted = eM ? eM : "00";
+                        timeInfo += ` ~ ${eH}:${eMinFormatted}`;
+                    }
+                }
+            }
+
+            if(!text || !startStr || !endStr) { alert("날짜와 일정 명을 완벽히 입력해주세요."); return; }
+
+            let dStart = new Date(startStr);
+            let dEnd = new Date(endStr);
+
+            while(dStart <= dEnd) {
+                let loopKey = formatDate(dStart);
+                if(!dateData[loopKey]) dateData[loopKey] = { routineOrder: [], routineChecked: {}, todos: [] };
+                
+                dateData[loopKey].todos.push({
+                    id: 'todo-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4),
+                    text: text,
+                    timeInfo: timeInfo,
+                    completed: false,
+                    note: ""
+                });
+                dStart.setDate(dStart.getDate() + 1);
+            }
+
+            // 폼 리셋
+            document.getElementById('todo-text').value = '';
+            document.getElementById('todo-start-hour').value = '';
+            document.getElementById('todo-start-min').value = '';
+            document.getElementById('todo-end-hour').value = '';
+            document.getElementById('todo-end-min').value = '';
+            document.getElementById('use-end-time').checked = false;
+            toggleEndTimeInput();
+
+            selectDate(selectedDateStr);
+        }
+
+        // 메모장 토글 열기/닫기
+        function toggleNotePad(todoId) {
+            const notepad = document.getElementById(`notepad-${todoId}`);
+            notepad.classList.toggle('hidden');
+        }
+
+        // 메모 실시간 저장
+        function saveTodoNote(todoId, val) {
+            const todo = dateData[selectedDateStr].todos.find(t => t.id === todoId);
+            if(todo) todo.note = val;
+        }
+
+        function searchTodos() {
+            const query = document.getElementById('search-input').value.trim().toLowerCase();
+            const box = document.getElementById('search-results-box');
+            const list = document.getElementById('search-results-list');
+
+            if(!query) { box.classList.add('hidden'); return; }
+            box.classList.remove('hidden');
+
+            let html = '';
+            Object.keys(dateData).forEach(dateStr => {
+                dateData[dateStr].todos.forEach(todo => {
+                    if(todo.text.toLowerCase().includes(query)) {
+                        html += `
+                            <div onclick="selectDate('${dateStr}')" class="p-2 hover:bg-[#e6ebd9] rounded-lg text-xs flex justify-between items-center cursor-pointer border border-dashed border-slate-200">
+                                <span class="font-semibold text-slate-700">${todo.text}</span>
+                                <span class="text-[#556b2f] font-mono">${dateStr} (${todo.timeInfo ? todo.timeInfo : '시간 없음'})</span>
+                            </div>
+                        `;
+                    }
+                });
+            });
+            list.innerHTML = html || '<p class="text-xs text-slate-400 py-2 text-center">검색 결과가 없습니다.</p>';
+        }
+
+        function toggleRoutineCheck(id) { dateData[selectedDateStr].routineChecked[id] = !dateData[selectedDateStr].routineChecked[id]; renderDetails(); }
+        function toggleTodoCheck(id) { 
+            const todo = dateData[selectedDateStr].todos.find(t => t.id === id);
+            if(todo) todo.completed = !todo.completed; 
+            renderDetails(); 
+        }
+        function deleteTodo(id) { 
+            dateData[selectedDateStr].todos = dateData[selectedDateStr].todos.filter(t => t.id !== id); 
+            selectDate(selectedDateStr); 
+        }
+        function formatDate(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; }
+        function prevMonth() { currentDate.setMonth(currentDate.getMonth() - 1); renderCalendar(); }
+        function nextMonth() { currentDate.setMonth(currentDate.getMonth() + 1); renderCalendar(); }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
